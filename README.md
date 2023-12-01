@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-    Square Db is developed to be maintained and extended by you.<br> Square DB is build to be fast , easy and security based! <br><br>
+    Square DB is developed to be maintained and extended by you.<br> Square DB is build to be fast , easy and security based! <br><br>
     Our DB is Extendable , what that means? <br>You yourself can make a change an left you own signature on the software.
 </p>
 
