@@ -7,7 +7,7 @@ use std::fs;
 pub struct ConfigStruct;
 
 pub trait ConfigTrait {
-  fn new() -> ConfigData;
+  fn new(config_file_path : &String) -> ConfigData;
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -56,12 +56,12 @@ pub struct Modules {
 }
 
 impl ConfigTrait for ConfigStruct {
-  fn new() -> ConfigData {
+  fn new(config_file_path: &String) -> ConfigData {
     // Default values
     let default_values : ConfigData = Defaults::default_config_value();
     
     // Read config.toml
-    let toml_str = match fs::read_to_string("config.toml") {
+    let toml_str = match fs::read_to_string(config_file_path) {
       Ok(content) => content,
       Err(_) => {
         // Cannot read config.toml
