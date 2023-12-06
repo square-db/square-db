@@ -1,18 +1,24 @@
+//This script is reposible for preparing the cmd
+use crate::config::config::Engine;
+use crate::activator::activator:: {
+  Activate,
+  ActivateTrait
+};
 pub struct Entry {
-  mode: String
+  settings: Engine
 }
 
 pub trait EntryTrait {
-  fn new(mode: &str) -> Entry;
+  fn new(settings: Engine) -> Entry;
   fn handle_cmd(&self, cmd: &str) -> Result<i32,
   i32>;
   fn check_cmd(&self, cmd: &str) -> String;
 }
 
 impl EntryTrait for Entry {
-  fn new(mode: &str) -> Entry {
+  fn new(settings: Engine) -> Entry {
     Entry {
-      mode: mode.to_string()
+      settings: settings
     }
   }
   /*
@@ -22,14 +28,19 @@ impl EntryTrait for Entry {
   fn handle_cmd(&self, cmd: &str) -> Result<i32,
   i32> {
     //Change Ownership of cmd
-    let mut checked_cmd: String = self.check_cmd(cmd);
+    let checked_cmd: String = self.check_cmd(cmd);
     //cmd = PING Then user check if the server is responding correctly
     if checked_cmd == "ping" {
       // see response/responsecodes.rs
       /*
       each number has a corresponding meaning
+      see reponse/reponsecodes.rs
       */
       return Ok(0)
+    }else {
+      //use the Activator to activate certain commands
+      Activate::config(self.settings.clone()).
+      activate(checked_cmd.clone());
     }
     Err(1000)
   }
@@ -38,10 +49,11 @@ impl EntryTrait for Entry {
   This function is responsible for parsing the programm and checking security risks
   */
   fn check_cmd(&self, cmd: &str) -> String {
-    // lowercase the strings
-    // strings between \u must not be lowercased
-    //There is not any comments signatures to insure nore security for the programm
-    let result = cmd
+    // Remove semicolons at the beginning and end of the string
+    let cmd_trimmed = cmd.trim_matches(';');
+
+    // Lowercase the strings between '\u', leaving them unchanged
+    let result = cmd_trimmed
     .split("#[u]")
     .enumerate()
     .flat_map(|(index, part)| {
@@ -56,4 +68,5 @@ impl EntryTrait for Entry {
 
     String::from(result)
   }
+
 }

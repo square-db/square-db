@@ -3,6 +3,8 @@ mod defaults;
 mod log;
 mod response;
 mod entry;
+mod activator;
+mod command;
 ////////////
 use std::net:: {
   SocketAddr,
@@ -14,9 +16,15 @@ use config::config:: {
   ConfigStruct,
   ConfigTrait
 };
-use response::response::{Response,ResponseTrait};
+use response::response:: {
+  Response,
+  ResponseTrait
+};
 use warp::Filter;
-use entry::entry::{Entry,EntryTrait};
+use entry::entry:: {
+  Entry,
+  EntryTrait
+};
 //Define the RequestParams
 //All data must be sended as Strings
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -28,8 +36,22 @@ struct RequestParams {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
+  println!("   _____                            ");
+  println!("  / ____|                           ");
+  println!(" | (___   __ _ _   _  __ _ _ __ ___ ");
+  println!("  \\___ \\ / _` | | | |/ _` | '__/ _ \\");
+  println!("  ____) | (_| | |_| | (_| | | |  __/");
+  println!(" |_____/ \\__, |\\__,_|\\__,_|_|  \\___|");
+  println!("           | |                       ");
+  println!("          _|_|_  ____                ");
+  println!("         |  __ \\|  _ \\               ");
+  println!(" ______  | |  | | |_) |              ");
+  println!("|______| | |  | |  _ <               ");
+  println!("          | |__| | |_) |              ");
+  println!("          |_____/|____/               ");
+
   /*config file path*/
-  let mut config_file_path : String = String::from("config.toml");
+  let mut config_file_path: String = String::from("config.toml");
   /*reading passed arguments*/
   let env: Vec<String> = env::args().collect();
   // Checking if at least two arguemnts were passed
@@ -44,6 +66,7 @@ async fn main() {
   read Configuration file
   */
   let config_file = ConfigStruct::new(&config_file_path);
+
   //Server : This is main entry point 👉 of the whole software
   //Define the HTTP Method as pots for security reasons
   let api = warp::post()
@@ -53,13 +76,15 @@ async fn main() {
   //Turn the sended body as json
   .and(warp::body::json())
   //Define all params and enable serde on it
-  .map(|params: RequestParams| {
+  .map(move |params: RequestParams| {
+    //anthor config struct
+    let config_engine = ConfigStruct::new(&config_file_path);
     //Testing if the RequestParams were sended successfully
     println!("{:?}", params.username);
     println!("{:?}", params.password);
     println!("{:?}", params.query);
-    
-    return Response::respond(Entry::new("dev").handle_cmd(&params.query));
+
+    return Response::respond(Entry::new(config_engine.engine.clone()).handle_cmd(&params.query));
   });
 
   //Run the Server

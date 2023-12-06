@@ -10,6 +10,7 @@ pub struct Response;
 #[allow(non_snake_case)]
 pub struct ResponseMessage {
   //code | Status code | message
+  // (Type) Err?(1000) msg
   /*
   Codes between 100 - 500 are success
   q                sE = Succes but can cause future Errors

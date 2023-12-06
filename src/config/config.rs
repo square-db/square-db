@@ -1,16 +1,19 @@
 // This script is to read configuration file
 use toml::de::from_str;
-use crate::defaults::defaults::{Defaults};
+use crate::defaults::defaults:: {
+  Defaults
+};
 use crate::log::log::*;
 use std::fs;
 
 pub struct ConfigStruct;
 
 pub trait ConfigTrait {
-  fn new(config_file_path : &String) -> ConfigData;
+  fn new(config_file_path: &String) -> ConfigData;
 }
 
-#[derive(Debug, serde::Deserialize)]
+
+#[derive(Debug, serde::Deserialize , Clone)]
 pub struct ConfigData {
   pub server: Server,
   pub auth: Auth,
@@ -20,6 +23,7 @@ pub struct ConfigData {
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(non_snake_case)]
+#[derive(Clone)]
 pub struct Server {
   pub host: String,
   pub port: String,
@@ -29,6 +33,7 @@ pub struct Server {
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(non_snake_case)]
+#[derive(Clone)]
 pub struct Auth {
   pub username: String,
   pub password: String,
@@ -40,6 +45,7 @@ pub struct Auth {
 
 #[derive(Debug, serde::Deserialize)]
 #[allow(non_snake_case)]
+#[derive(Clone)]
 pub struct Engine {
   pub mode: String,
   pub enableDeleteTable: String,
@@ -51,6 +57,7 @@ pub struct Engine {
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[derive(Clone)]
 pub struct Modules {
   pub packages: Vec<String>
 }
@@ -58,20 +65,24 @@ pub struct Modules {
 impl ConfigTrait for ConfigStruct {
   fn new(config_file_path: &String) -> ConfigData {
     // Default values
-    let default_values : ConfigData = Defaults::default_config_value();
-    
+    let default_values: ConfigData = Defaults::default_config_value();
+
     // Read config.toml
     let toml_str = match fs::read_to_string(config_file_path) {
-      Ok(content) => content,
+      Ok(content) => {
+        println!("{} {} {}" , Log::success("Success - Loaded config file from") , &config_file_path , Log::success("successfully"));
+        content
+      },
       Err(_) => {
         // Cannot read config.toml
-        println!("{}" , Log::warning("Failed to read config.toml. Using default values."));
+        println!("{}", Log::warning("Warning - Failed to read config.toml. Using default values."));
         return default_values;
       }
     };
-    
+
     // Parse the config.toml
-    let result: Result<ConfigData, toml::de::Error> = from_str(&toml_str);
+    let result: Result<ConfigData,
+    toml::de::Error> = from_str(&toml_str);
 
     match result {
       Ok(config) => {
@@ -79,7 +90,7 @@ impl ConfigTrait for ConfigStruct {
       },
       // Parsing was not successful
       Err(e) => {
-        println!("{}", Log::warning(e.to_string()));
+        println!("{} - {}", Log::warning("Warning"), Log::warning(e.to_string()));
         return default_values;
       }
     }
