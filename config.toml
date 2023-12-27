@@ -18,7 +18,6 @@ enableDeleteTable = "true"
 enableDeleteRow = "true"
 enableForceCreation = "true"
 enableCache = "true"
-enableAutoSave = "2s"
 enableTableHashing = "true"
 
 [packages]

@@ -27,7 +27,6 @@ impl Defaults {
         enableDeleteRow: String::from("true"),
         enableForceCreation: String::from("true"),
         enableCache: String::from("true"),
-        enableAutoSave: String::from("2s"),
         enableTableHashing: String::from("true")
       },
       packages: Modules {

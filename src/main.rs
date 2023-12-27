@@ -5,6 +5,12 @@ mod response;
 mod entry;
 mod activator;
 mod command;
+mod operation;
+mod state;
+mod load;
+mod fm;
+mod table;
+mod datatypes;
 ////////////
 use std::net:: {
   SocketAddr,
@@ -20,11 +26,13 @@ use response::response:: {
   Response,
   ResponseTrait
 };
+use crate::state::state::add_v_state;
 use warp::Filter;
 use entry::entry:: {
   Entry,
   EntryTrait
 };
+
 //Define the RequestParams
 //All data must be sended as Strings
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -49,7 +57,6 @@ async fn main() {
   println!("|______| | |  | |  _ <               ");
   println!("          | |__| | |_) |              ");
   println!("          |_____/|____/               ");
-
   /*config file path*/
   let mut config_file_path: String = String::from("config.toml");
   /*reading passed arguments*/
@@ -66,25 +73,34 @@ async fn main() {
   read Configuration file
   */
   let config_file = ConfigStruct::new(&config_file_path);
-
+  //save settings to the state
+  add_v_state(String::from("config"), config_file.clone());
   //Server : This is main entry point 👉 of the whole software
-  //Define the HTTP Method as pots for security reasons
+  //Define the HTTP Method as post for security reasons
   let api = warp::post()
   //Main endpoint
   //changeable through configuration file and --endpoint
   .and(warp::path(config_file.server.endpoint))
   //Turn the sended body as json
   .and(warp::body::json())
-  //Define all params and enable serde on it
-  .map(move |params: RequestParams| {
-    //anthor config struct
-    let config_engine = ConfigStruct::new(&config_file_path);
-    //Testing if the RequestParams were sended successfully
-    println!("{:?}", params.username);
-    println!("{:?}", params.password);
-    println!("{:?}", params.query);
-
-    return Response::respond(Entry::new(config_engine.engine.clone()).handle_cmd(&params.query));
+  .and(warp::addr::remote())
+  .map(move |params: RequestParams, addr: Option<SocketAddr>| {
+    let ip_address: std::net::SocketAddr;
+    if let Some(ip) = addr {
+      ip_address = ip;
+      println!("\n{} {}\n", &ip_address, &params.query);
+      if config_file.server.allowedIps.contains(&ip_address.to_string()) || config_file.server.allowedIps == "*" {
+        println!("[INFO] {}", Log::info("Ip address Allowed"));
+        return Response::respond(Entry::new().handle_cmd(&params.query));
+      }
+      else {
+        return Response::respond(Entry::new().handle_cmd("EIP1"));
+      }
+    }
+    //ip address isnot found
+    else {
+      return Response::respond(Entry::new().handle_cmd("EIP2"));
+    }
   });
 
   //Run the Server

@@ -1,25 +1,21 @@
 //This script is reposible for preparing the cmd
-use crate::config::config::Engine;
 use crate::activator::activator:: {
   Activate,
   ActivateTrait
 };
-pub struct Entry {
-  settings: Engine
-}
+use crate::log::log::*;
+pub struct Entry;
 
 pub trait EntryTrait {
-  fn new(settings: Engine) -> Entry;
+  fn new() -> Entry;
   fn handle_cmd(&self, cmd: &str) -> Result<i32,
   i32>;
   fn check_cmd(&self, cmd: &str) -> String;
 }
 
 impl EntryTrait for Entry {
-  fn new(settings: Engine) -> Entry {
-    Entry {
-      settings: settings
-    }
+  fn new() -> Entry {
+    Entry {}
   }
   /*
   This function is the main entry point to the programm it load , save and cahce commands
@@ -37,12 +33,19 @@ impl EntryTrait for Entry {
       see reponse/reponsecodes.rs
       */
       return Ok(0)
-    }else {
-      //use the Activator to activate certain commands
-      Activate::config(self.settings.clone()).
-      activate(checked_cmd.clone());
     }
-    Err(1000)
+    else if checked_cmd == "eip1"{
+      println!("Err(606): {}", Log::error("Ip address isnot allowed"));
+      return Err(606)
+    }
+    else if checked_cmd == "eip2"{
+      println!("Err(607): {}", Log::error("Ip address is unknown!"));
+      return Err(607)
+    }
+    else {
+      //use the Activator to activate certain commands
+      return Activate::new().activate(checked_cmd.clone());
+    }
   }
 
   /*

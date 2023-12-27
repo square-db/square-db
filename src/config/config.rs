@@ -52,7 +52,6 @@ pub struct Engine {
   pub enableDeleteRow: String,
   pub enableForceCreation: String,
   pub enableCache: String,
-  pub enableAutoSave: String,
   pub enableTableHashing: String
 }
 
