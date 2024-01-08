@@ -3,14 +3,15 @@
 use std::collections::HashMap;
 use crate::operation::createcmd::{Create};
 use crate::operation::operation::OperationT;
+use crate::response::responses::{Responses};
+use crate::response::process_responses::ProcessResponses;
 
 pub struct Command;
 
 pub trait CommandTrait {
   fn check(cmd: String) -> Result<i32,
   i32>;
-  fn run(cmd: String) -> Result<i32,
-  i32>;
+  fn run(cmd: String) -> Result<Responses,Responses>;
 }
 
 impl CommandTrait for Command {
@@ -30,14 +31,13 @@ impl CommandTrait for Command {
   }
   
   //run command
-  fn run(cmd: String) -> Result<i32,
-  i32>{
+  fn run(cmd: String) -> Result<Responses,Responses>{
     let command: String = cmd.split_whitespace().next().map(|s| s.to_string()).unwrap_or_default();
 
     if command == "create" {
       return Create::new().run(cmd);
     }
     //unnecessery
-    Err(600)
+    Err(Responses::Process(ProcessResponses::QueryUnknowErr))
   }
 }

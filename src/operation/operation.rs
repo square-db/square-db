@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::response::responses::{Responses};
 
 #[derive(Debug , Clone)]
 pub struct ParsedCmd {
@@ -20,7 +21,7 @@ impl ParsedCmd {
 
 pub trait OperationT<T> {
   fn new() -> T;
-  fn run(&self , cmd: String) -> Result<i32, i32>;
+  fn run(&self , cmd: String) -> Result<Responses, Responses>;
   fn parse(&self , cmd: String) -> ParsedCmd;
-  fn validate(&self , cmd: String) -> Result<i32,i32>;
+  fn validate(&self , cmd: String) -> Result<Responses,Responses>;
 }

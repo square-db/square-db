@@ -1,15 +1,15 @@
 //This script is reposible for preparing the cmd
+use crate::response::responses::{Responses};
+use crate::response::process_responses::ProcessResponses;
 use crate::activator::activator:: {
   Activate,
   ActivateTrait
 };
-use crate::log::log::*;
 pub struct Entry;
 
 pub trait EntryTrait {
   fn new() -> Entry;
-  fn handle_cmd(&self, cmd: &str) -> Result<i32,
-  i32>;
+  fn handle_cmd(&self, cmd: &str) -> Result<Responses,Responses>;
   fn check_cmd(&self, cmd: &str) -> String;
 }
 
@@ -21,8 +21,7 @@ impl EntryTrait for Entry {
   This function is the main entry point to the programm it load , save and cahce commands
   */
   //All commands will be in-case-senstive!
-  fn handle_cmd(&self, cmd: &str) -> Result<i32,
-  i32> {
+  fn handle_cmd(&self, cmd: &str) -> Result<Responses,Responses> {
     //Change Ownership of cmd
     let checked_cmd: String = self.check_cmd(cmd);
     //cmd = PING Then user check if the server is responding correctly
@@ -32,15 +31,13 @@ impl EntryTrait for Entry {
       each number has a corresponding meaning
       see reponse/reponsecodes.rs
       */
-      return Ok(0)
+      return Ok(Responses::Process(ProcessResponses::ConnectivitySuccess))
     }
     else if checked_cmd == "eip1"{
-      println!("Err(606): {}", Log::error("Ip address isnot allowed"));
-      return Err(606)
+      return Err(Responses::Process(ProcessResponses::IpAddressUnallowedErr))
     }
     else if checked_cmd == "eip2"{
-      println!("Err(607): {}", Log::error("Ip address is unknown!"));
-      return Err(607)
+      return Err(Responses::Process(ProcessResponses::IpAddressUnknownErr))
     }
     else {
       //use the Activator to activate certain commands

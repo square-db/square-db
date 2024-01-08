@@ -1,3 +1,5 @@
-//Test Passed in tests/test_response.rs
 pub mod response;
-pub mod responsecodes;
+pub mod responses;
+pub mod response_code;
+pub mod process_responses;
+pub mod cmd_responses;
