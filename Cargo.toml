@@ -18,5 +18,6 @@ tokio = { version = "1.34.0", features = ["macros"] }
 lazy_static = "1.4.0"
 rand = "0.8.5"
 magic-crypt = "3.1.13"
-argparsnip = "0.1.6"
+structopt = { version = "0.3", default-features = false }
 secrecy = "0.8.0"
+dotenv = "0.15.0"

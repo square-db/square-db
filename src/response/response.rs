@@ -61,11 +61,15 @@ impl ResponseTrait for Response {
 
   fn respond(result: Result<Responses, Responses>) -> warp::reply::WithStatus<warp::reply::Json> {
     match result.map(|code| Response::find_by_code(code.into())) {
-      Ok(response_message) | Err(response_message) => {
+      Ok(response_message) => {
+        let json_reply = json(&response_message);
+        warp::reply::with_status(json_reply, response_message.HTTPStatusCode)
+      }
+      Err(response_code) => {
+        let response_message = Response::find_by_code(response_code.into());
         let json_reply = json(&response_message);
         warp::reply::with_status(json_reply, response_message.HTTPStatusCode)
       }
     }
-
   }
 }
