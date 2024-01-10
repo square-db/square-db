@@ -1,17 +1,21 @@
-use std::net:: {
-  SocketAddr,
-  IpAddr
-};
 use crate::log::log::*;
-use response::response:: {
+use warp::Filter;
+use std::collections::HashMap;
+use std::net::SocketAddr;
+use crate::env::env:: {
+  Env,
+  EnvT
+};
+use crate::response::response:: {
   Response,
   ResponseTrait
 };
-use warp::Filter;
-use entry::entry:: {
+use crate::entry::entry:: {
   Entry,
   EntryTrait
 };
+
+
 //Define the RequestParams
 //All data must be sended as Strings
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -24,16 +28,14 @@ struct RequestParams {
 
 pub struct Server;
 pub trait ServerT {
-  fn new() -> Server;
   fn run() -> ();
 }
 
 impl ServerT for Server {
-  fn new() -> Server {
-    Server {}
-  }
-
-  fn run() -> Option<()> {
+  #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
+  async fn run() -> () {
+    let env_vars: HashMap<String,
+    String> = Env.get_env_vars_from_session();
     //Define the HTTP Method as post for security reasons
     let api = warp::post()
     //Main endpoint
@@ -57,9 +59,14 @@ impl ServerT for Server {
 
     //Run the Server
     //host and port are changeable through the configuration file
-    let host_ip: IpAddr = String::from("127.0.0.1").parse().expect(&Log::error("Cannot parse host ip address"));
-    let socket_addr = SocketAddr::new(host_ip, String::from("8000").parse::<u16>().unwrap());
-    println!("{} on {}", Log::success("Server runned successfully"), Log::success(socket_addr));
+    let socket_addr: SocketAddr = match env_vars["BIND"].parse() {
+      Ok(addr) => addr,
+      Err(_) => {
+       println!("[{}] Cannot parse socket address {}", Log::error("ERR"), Log::error(&env_vars["BIND"]));
+        panic!("Failed to parse Socket Address");
+      }
+    };
+    println!("✅[{}] Server runned on on {}", Log::success("SUCCESS"), Log::success(socket_addr));
 
     warp::serve(api).run(socket_addr).await;
   }
