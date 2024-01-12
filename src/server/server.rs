@@ -45,6 +45,7 @@ impl ServerT for Server {
     .and(warp::body::json())
     .and(warp::addr::remote())
     .map(move |params: RequestParams, addr: Option<SocketAddr>| {
+      println!("{}", &params.query);
       let ip_address: std::net::SocketAddr;
       if let Some(ip) = addr {
         ip_address = ip;
@@ -62,12 +63,29 @@ impl ServerT for Server {
     let socket_addr: SocketAddr = match env_vars["BIND"].parse() {
       Ok(addr) => addr,
       Err(_) => {
-       println!("[{}] Cannot parse socket address {}", Log::error("ERR"), Log::error(&env_vars["BIND"]));
+        println!("[{}] Cannot parse socket address {}", Log::error("ERR"), Log::error(&env_vars["BIND"]));
         panic!("Failed to parse Socket Address");
       }
     };
-    println!("✅[{}] Server runned on on {}", Log::success("SUCCESS"), Log::success(socket_addr));
-
-    warp::serve(api).run(socket_addr).await;
+    if env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() {
+      println!("[{}] {} is empty, but {} is not.", Log::info("INFO"), Log::info("WEB_CRT"), Log::info("WEB_"));
+    } else if !env_vars["WEB_CRT"].is_empty() && env_vars["WEB_KEY"].is_empty() {
+      println!("[{}] {} is empty, but {} is not.", Log::info("INFO"), Log::info("WEB_KEY"), Log::info("WEB_CRT"));
+    } else {
+      println!("[{}] TLS used...", Log::info("INFO"));
+    }
+    println!("[{}] Server runned on on {}", Log::success("SUCCESS"), Log::success(socket_addr));
+    if !env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() {
+      warp::serve(api)
+      .tls()
+      .cert_path(&env_vars["WEB_CRT"])
+      .key_path(&env_vars["WEB_KEY"])
+      .run(socket_addr)
+      .await;
+    } else {
+      warp::serve(api)
+      .run(socket_addr)
+      .await;
+    }
   }
 }

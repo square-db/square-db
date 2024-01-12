@@ -20,7 +20,10 @@ impl EnvT for Env {
   fn init() -> () {
     match dotenv() {
       Ok(_) => println!("[{}] Loaded .env successfully", Log::info("INFO")),
-      Err(_) => println!("[{}] Cannot load .env", Log::info("INFO"))
+      Err(e) => {
+        println!("[{}] Cannot load .env", Log::info("INFO"));
+        println!("[{}] {}", Log::error("ERR"), e);
+      }
     }
   }
   fn default() -> HashMap<String,
@@ -54,8 +57,9 @@ impl EnvT for Env {
 
     default_env_vars
   }
-  
-  fn get_env_vars_from_session(&self) -> HashMap<String,String> {
+
+  fn get_env_vars_from_session(&self) -> HashMap<String,
+  String> {
     SessionManager::get(String::from("env"))
     .unwrap_or_else( || Self::default())
   }
