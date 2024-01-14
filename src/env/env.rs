@@ -46,6 +46,7 @@ impl EnvT for Env {
     let default_env_vars = insert!(
       default_env_vars,
       "BIND" => "127.0.0.1:8000",
+      "ENDPOINT" => "db",
       "USER" => "root",
       "PASSW" => "root",
       "MAX_CONNECTIONS" => "0",

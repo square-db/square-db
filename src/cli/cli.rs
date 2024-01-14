@@ -25,6 +25,10 @@ struct Opt {
   /// Specify port
   #[structopt(long = "bind", short = "b")]
   bind: Option<String>,
+  
+  /// Specify Endpoint
+  #[structopt(long = "endpoint", short = "e")]
+  endpoint: Option<String>,
 
   /// Specify password
   #[structopt(long = "password", short = "p")]
@@ -85,6 +89,7 @@ impl CliT for Cli {
     }
 
     insert!(global_vars, "BIND", passed_args.bind, "SQUARE_BIND", default_env_vars["BIND"]);
+    insert!(global_vars, "ENDPOINT", passed_args.endpoint, "SQUARE_ENDPOINT", default_env_vars["ENDPOINT"]);
     insert!(global_vars, "USER", passed_args.user, "SQUARE_USER", "root");
     insert!(global_vars, "PASSW", passed_args.password, "SQUARE_PASSW", "root");
     insert!(global_vars, "MAX_CONNECTIONS", passed_args.max_connections, "SQUARE_MAX_CONNECTIONS", "0");

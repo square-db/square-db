@@ -1,5 +1,6 @@
 use crate::log::log::*;
 use warp::Filter;
+use std::process;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use crate::env::env:: {
@@ -37,10 +38,15 @@ impl ServerT for Server {
     let env_vars: HashMap<String,
     String> = Env.get_env_vars_from_session();
     //Define the HTTP Method as post for security reasons
+    let endpoint = &env_vars["ENDPOINT"];
+    if endpoint.is_empty() {
+      println!("[{}] Endpoint cannot be empty!", Log::error("ERR"));
+      process::exit(1);
+    }
     let api = warp::post()
     //Main endpoint
     //changeable through configuration file and --endpoint
-    .and(warp::path("db"))
+    .and(warp::path(endpoint.clone()))
     //Turn the sended body as json
     .and(warp::body::json())
     .and(warp::addr::remote())
@@ -67,6 +73,7 @@ impl ServerT for Server {
         panic!("Failed to parse Socket Address");
       }
     };
+    
     if env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() {
       println!("[{}] {} is empty, but {} is not.", Log::info("INFO"), Log::info("WEB_CRT"), Log::info("WEB_"));
     } else if !env_vars["WEB_CRT"].is_empty() && env_vars["WEB_KEY"].is_empty() {
@@ -74,7 +81,9 @@ impl ServerT for Server {
     } else {
       println!("[{}] TLS used...", Log::info("INFO"));
     }
-    println!("[{}] Server runned on on {}", Log::success("SUCCESS"), Log::success(socket_addr));
+    
+    
+    println!("[{}] Server runned on on {}/{}", Log::success("SUCCESS"), Log::success(socket_addr), Log::success(&env_vars["ENDPOINT"]));
     if !env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() {
       warp::serve(api)
       .tls()
