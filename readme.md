@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://squaredb.vercel.app" target="_blank">
-        <img width="300" src="/logo.jpg" alt="SquareDb Logo">
+        <img width="300" src="img/logo.jpg" alt="SquareDb Logo">
     </a>
 </p>
 
