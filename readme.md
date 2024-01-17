@@ -2,7 +2,7 @@
 <br>
 
 > The Software is still under development from our squares programmers!
-> But we are pushing the changes under this [repo](https://github.com/square-db/squaredb). You can join us to be a Square too!
+> You can join us to be a Square too!
 
 <p align="center">
     <a href="https://squaredb.vercel.app" target="_blank">

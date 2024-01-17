@@ -1,7 +1,10 @@
-use std::collections::HashMap;
-use std::env;
 use crate::log::log::*;
 use structopt::StructOpt;
+use crate::encryptor::key::key;
+use crate::encryptor::key:: {
+  KeyTrait,
+  Key
+};
 use crate::env::env:: {
   Env,
   EnvT
@@ -10,53 +13,61 @@ use crate::server::server:: {
   ServerT,
   Server
 };
-use crate::session::session:: {
-  SessionManager,
-  SessionManagerT
-};
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, Clone)]
 #[structopt(name = "SquareDB Server", about = "The full fledged SquareDB Server")]
-struct Opt {
+pub struct Opt {
   /// Start the Server
   #[structopt(long = "start", short = "s")]
   start: bool,
 
+  /// Restore all issued KEYs
+  #[structopt(long = "restore")]
+  restore: bool,
+
+  /// Generates a valid Public key
+  #[structopt(long = "gen-key")]
+  generate_key: bool,
+
+  /// Cache
+  #[structopt(long = "cache")]
+  cache: bool,
+
   /// Specify port
   #[structopt(long = "bind", short = "b")]
-  bind: Option<String>,
-  
+  pub bind: Option<String>,
+
   /// Specify Endpoint
   #[structopt(long = "endpoint", short = "e")]
-  endpoint: Option<String>,
+  pub endpoint: Option<String>,
 
   /// Specify password
   #[structopt(long = "password", short = "p")]
-  password: Option<String>,
+  pub password: Option<String>,
 
   /// Specify user
   #[structopt(long = "user", short = "u")]
-  user: Option<String>,
+  pub user: Option<String>,
 
   /// Specify max connections
   #[structopt(long = "max-connections", short = "mc")]
-  max_connections: Option<String>,
+  pub max_connections: Option<String>,
 
   /// Specify timeout
   #[structopt(long = "timeout", short = "t")]
-  timeout: Option<String>,
+  pub timeout: Option<String>,
 
   /// Specify web certificate
   #[structopt(long = "web-crt", short = "crt")]
-  web_crt: Option<String>,
+  pub web_crt: Option<String>,
 
   /// Specify web key
   #[structopt(long = "web-key", short = "key")]
-  web_key: Option<String>,
+  pub web_key: Option<String>,
 
   /// Specify client IP
   #[structopt(long = "client-ip", short = "i")]
-  client_ip: Option<String>,
+  pub client_ip: Option<String>,
 }
 
 pub struct Cli;
@@ -67,41 +78,28 @@ pub trait CliT {
 
 impl CliT for Cli {
   fn init() {
-    let default_env_vars: HashMap<String,
-    String> = Env::default();
     let passed_args: Opt = Opt::from_args();
-    let mut global_vars: HashMap<String,
-    String> = HashMap::with_capacity(8);
 
-    macro_rules! insert {
-      ($map: expr, $key: expr, $field: expr, $env_var: expr, $default_value: expr) => {
-        let value = $field.clone().unwrap_or_else( || {
-          let default_value = env::var($env_var)
-          .unwrap_or_else(|_| {
-            println!("[{}] Using default value for {}",Log::info("INFO"), Log::info($key));
-            String::from($default_value.clone())
-          });
-          default_value
-        });
-
-        $map.insert($key.to_owned(), value);
-      };
-    }
-
-    insert!(global_vars, "BIND", passed_args.bind, "SQUARE_BIND", default_env_vars["BIND"]);
-    insert!(global_vars, "ENDPOINT", passed_args.endpoint, "SQUARE_ENDPOINT", default_env_vars["ENDPOINT"]);
-    insert!(global_vars, "USER", passed_args.user, "SQUARE_USER", "root");
-    insert!(global_vars, "PASSW", passed_args.password, "SQUARE_PASSW", "root");
-    insert!(global_vars, "MAX_CONNECTIONS", passed_args.max_connections, "SQUARE_MAX_CONNECTIONS", "0");
-    insert!(global_vars, "TIMEOUT", passed_args.timeout, "SQUARE_TIMEOUT", "0");
-    insert!(global_vars, "WEB_CRT", passed_args.web_crt, "SQUARE_WEB_CRT", "");
-    insert!(global_vars, "WEB_KEY", passed_args.web_key, "SQUARE_WEB_KEY", "");
-    insert!(global_vars, "CLIENT_IP", passed_args.client_ip, "SQUARE_CLIENT_IP", "*");
-
-    SessionManager::set(String::from("env"), global_vars);
+    Env::map_env_values_with_passed_args(passed_args.clone());
 
     if passed_args.start {
+      //Load Env vars
+      Env::init();
+      //check for key validlity
+      key();
       Server::run();
+    }
+
+    if passed_args.generate_key {
+      println!("[{}] {} keep these key secret and never expose it! IF THIS KEY WENT LOST YOU (CAN) RESTORE IT", Log::info("INFO"), Key::generate_valid_pub_key());
+    }
+
+    if passed_args.restore {
+      Server::run();
+    }
+
+    if passed_args.cache {
+      println!("Still coming in other versions 1.0.0-beta22")
     }
   }
 }

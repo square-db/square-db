@@ -13,13 +13,13 @@ use std::io:: {
 pub struct FileManager;
 
 pub trait FileManagerTrait {
-  fn read_file_to_string(path: &str) -> Result<String,Responses>;
+  fn read_file_to_string(path: String) -> Result<String,Responses>;
   fn write_file_incremental(path: String, content: &String) -> Result<(),
   Responses>;
 }
 
 impl FileManagerTrait for FileManager {
-  fn read_file_to_string(path: &str) -> Result<String,Responses> {
+  fn read_file_to_string(path: String) -> Result<String,Responses> {
     let mut file = match File::open(path) {
       Ok(file) => file,
       Err(_) => {

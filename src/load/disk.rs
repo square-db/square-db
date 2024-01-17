@@ -6,7 +6,8 @@ use crate::table::table::Table;
 use crate::encryptor::encryptor:: {
   Encryptor,
   EncryptorTrait
-}; use crate::response::responses:: {
+}; 
+use crate::response::responses:: {
   Responses
 };
 use crate::response::process_responses::ProcessResponses;

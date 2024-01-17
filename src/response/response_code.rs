@@ -6,6 +6,7 @@ use crate::response::responses::Responses;
 use crate::response::process_responses::ProcessResponses;
 use crate::response::cmd_responses::CreateCmdResponses;
 use crate::response::process_responses::DatatypeResponses;
+use crate::response::process_responses::KmsResponses;
 
 pub struct DataTuple ((StatusCode, String, String));
 impl Default for DataTuple {
@@ -32,7 +33,7 @@ pub trait ResponseCodeTrait {
 impl ResponseCodeTrait for ResponseCode {
   fn response_codes() -> HashMap<Responses,
   DataTuple> {
-    let mut response_msgs: HashMap<Responses,DataTuple> = HashMap::with_capacity(21);
+    let mut response_msgs: HashMap<Responses,DataTuple> = HashMap::with_capacity(22);
     //default
     response_msgs.insert(Responses::DefaultDataTuple, Default::default());
     //connectivity Messages
@@ -64,7 +65,15 @@ impl ResponseCodeTrait for ResponseCode {
         String::from("Valid types are int64, int32, float32, float64, double, byte, text, smalltext, largetext, json, binary, bool, date, time, undefined, incrementel")
       ))
     );
-
+    //Kms Responses
+    response_msgs.insert(
+      Responses::Kms(KmsResponses::KeyNotfound),
+      DataTuple((
+        StatusCode::NOT_FOUND,
+        String::from("Err(KMS): Key is invalid!"),
+        String::from("")
+      ))
+    );
     //Process Responses
     response_msgs.insert(
       Responses::Process(ProcessResponses::QueryUnknowErr),

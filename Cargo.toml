@@ -1,6 +1,6 @@
 [package]
 name = "squaredb"
-version = "1.0.0-beta5"
+version = "1.0.0-beta21"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -20,5 +20,5 @@ lazy_static = "1.4.0"
 rand = "0.8.5"
 magic-crypt = "3.1.13"
 structopt = { version = "0.3", default-features = false }
-secrecy = "0.8.0"
 dotenv = "0.15.0"
+

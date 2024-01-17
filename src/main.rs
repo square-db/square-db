@@ -18,10 +18,6 @@ mod cli;
 mod session;
 mod server;
 ////////////
-use crate::env::env:: {
-  Env,
-  EnvT
-};
 use cli::cli:: {
   Cli,
   CliT
@@ -38,8 +34,6 @@ fn main(){
             | |                                  
             |_|                                  
 "#);
-  //Load Env vars
-  Env::init();
   //Init the cli
   Cli::init();
 }
