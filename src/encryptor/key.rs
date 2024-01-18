@@ -104,7 +104,7 @@ impl KeyTrait for Key {
   String> {
     match self.mc.decrypt_base64_to_string(encrypted_key) {
       Ok(result) => Ok(result),
-      Err(_) => Err(String::from("Decryption error \n use --restore to restore all keys"))
+      Err(_) => Err(String::from("Decryption error \n use --key --change to change it!"))
     }
   }
 }

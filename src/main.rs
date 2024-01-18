@@ -1,7 +1,6 @@
 #![deny(clippy::mem_forget)]
 #![forbid(unsafe_code)]
 
-
 mod log;
 mod response;
 mod entry;

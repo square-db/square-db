@@ -1,5 +1,9 @@
 use crate::log::log::*;
 use structopt::StructOpt;
+use structopt::clap:: {
+  AppSettings,
+  arg_enum
+};
 use crate::encryptor::key::key;
 use crate::encryptor::key:: {
   KeyTrait,
@@ -15,23 +19,17 @@ use crate::server::server:: {
 };
 
 #[derive(Debug, StructOpt, Clone)]
-#[structopt(name = "SquareDB Server", about = "The full fledged SquareDB Server")]
+#[structopt(name = "SquareDB Server", about = "The full fledged SquareDB Server", global_settings = &[AppSettings::ColoredHelp, AppSettings::ArgRequiredElseHelp])]
 pub struct Opt {
+
   /// Start the Server
-  #[structopt(long = "start", short = "s")]
+  #[structopt(long = "start" , short="S")]
   start: bool,
 
-  /// Restore all issued KEYs
-  #[structopt(long = "restore")]
-  restore: bool,
+  /// Entering KMS Mode
+  #[structopt(long = "kms", short="K", takes_value = true, possible_values = &["generate_key", "change"])]
+  kms: String,
 
-  /// Generates a valid Public key
-  #[structopt(long = "gen-key")]
-  generate_key: bool,
-
-  /// Cache
-  #[structopt(long = "cache")]
-  cache: bool,
 
   /// Specify port
   #[structopt(long = "bind", short = "b")]
@@ -68,6 +66,7 @@ pub struct Opt {
   /// Specify client IP
   #[structopt(long = "client-ip", short = "i")]
   pub client_ip: Option<String>,
+
 }
 
 pub struct Cli;
@@ -80,26 +79,22 @@ impl CliT for Cli {
   fn init() {
     let passed_args: Opt = Opt::from_args();
 
-    Env::map_env_values_with_passed_args(passed_args.clone());
 
-    if passed_args.start {
+    if passed_args.start {ß11
       //Load Env vars
       Env::init();
+      Env::map_env_values_with_passed_args(passed_args.clone());
       //check for key validlity
       key();
+      //start the server
       Server::run();
     }
 
-    if passed_args.generate_key {
-      println!("[{}] {} keep these key secret and never expose it! IF THIS KEY WENT LOST YOU (CAN) RESTORE IT", Log::info("INFO"), Key::generate_valid_pub_key());
+    if passed_args.kms == "generate_key" {
+    println!("[{}] PUB_KEY: {}", Log::info("INFO"), Key::generate_valid_pub_key());
+    }else if passed_args.kms == "change" {
+      println!("Will be supproted in coming beta versions!")
     }
 
-    if passed_args.restore {
-      Server::run();
-    }
-
-    if passed_args.cache {
-      println!("Still coming in other versions 1.0.0-beta22")
-    }
   }
 }
