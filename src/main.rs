@@ -2,20 +2,15 @@
 #![forbid(unsafe_code)]
 
 mod log;
-mod response;
 mod entry;
-mod activator;
-mod command;
-mod operation;
-mod load;
-mod fm;
-mod table;
-mod datatypes;
-mod encryptor;
+//mod load;
+//mod fm;
+//mod encryptor;
 mod env;
 mod cli;
 mod session;
 mod server;
+mod response;
 ////////////
 use cli::cli:: {
   Cli,

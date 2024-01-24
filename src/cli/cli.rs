@@ -1,13 +1,7 @@
 use crate::log::log::*;
 use structopt::StructOpt;
 use structopt::clap:: {
-  AppSettings,
-  arg_enum
-};
-use crate::encryptor::key::key;
-use crate::encryptor::key:: {
-  KeyTrait,
-  Key
+  AppSettings
 };
 use crate::env::env:: {
   Env,
@@ -28,7 +22,7 @@ pub struct Opt {
 
   /// Entering KMS Mode
   #[structopt(long = "kms", short="K", takes_value = true, possible_values = &["generate_key", "change"])]
-  kms: String,
+  kms: Option<String>,
 
 
   /// Specify port
@@ -63,10 +57,6 @@ pub struct Opt {
   #[structopt(long = "web-key", short = "key")]
   pub web_key: Option<String>,
 
-  /// Specify client IP
-  #[structopt(long = "client-ip", short = "i")]
-  pub client_ip: Option<String>,
-
 }
 
 pub struct Cli;
@@ -80,19 +70,17 @@ impl CliT for Cli {
     let passed_args: Opt = Opt::from_args();
 
 
-    if passed_args.start {ß11
+    if passed_args.start {
       //Load Env vars
       Env::init();
       Env::map_env_values_with_passed_args(passed_args.clone());
-      //check for key validlity
-      key();
       //start the server
       Server::run();
     }
 
-    if passed_args.kms == "generate_key" {
-    println!("[{}] PUB_KEY: {}", Log::info("INFO"), Key::generate_valid_pub_key());
-    }else if passed_args.kms == "change" {
+    if passed_args.kms.clone().unwrap() == "generate_key" {
+    println!("[{}] PUB_KEY: {}", Log::info("INFO"), "Wait ");
+    }else if passed_args.kms.clone().unwrap() == "change" {
       println!("Will be supproted in coming beta versions!")
     }
 

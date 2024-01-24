@@ -55,8 +55,7 @@ impl EnvT for Env {
       "MAX_CONNECTIONS" => "0",
       "TIMEOUT" => "0",
       "WEB_CRT" => "",
-      "WEB_KEY" => "",
-      "CLIENT_IP" => "*"
+      "WEB_KEY" => ""
     );
 
     default_env_vars
@@ -96,7 +95,6 @@ impl EnvT for Env {
     insert!(global_vars, "TIMEOUT", passed_args.timeout, "SQUARE_TIMEOUT", "0");
     insert!(global_vars, "WEB_CRT", passed_args.web_crt, "SQUARE_WEB_CRT", "");
     insert!(global_vars, "WEB_KEY", passed_args.web_key, "SQUARE_WEB_KEY", "");
-    insert!(global_vars, "CLIENT_IP", passed_args.client_ip, "SQUARE_CLIENT_IP", "*");
 
     SessionManager::set(String::from("env"), global_vars);
   }

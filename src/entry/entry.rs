@@ -1,15 +1,13 @@
-//This script is reposible for preparing the cmd
-use crate::response::responses::{Responses};
-use crate::response::process_responses::ProcessResponses;
-use crate::activator::activator:: {
-  Activate,
-  ActivateTrait
-};
+//This script is reponsible for running the cmd
+use squaredb_ql::QL;
+use std::collections::HashMap;
+use crate::response::create_response::create_response;
+
 pub struct Entry;
 
 pub trait EntryTrait {
   fn new() -> Entry;
-  fn handle_cmd(&self, cmd: &str) -> Result<Responses,Responses>;
+  fn handle_cmd(&self, cmd: &str) -> HashMap<String,String>;
   fn check_cmd(&self, cmd: &str) -> String;
 }
 
@@ -21,7 +19,7 @@ impl EntryTrait for Entry {
   This function is the main entry point to the programm it load , save and cahce commands
   */
   //All commands will be in-case-senstive!
-  fn handle_cmd(&self, cmd: &str) -> Result<Responses,Responses> {
+  fn handle_cmd(&self, cmd: &str) -> HashMap<String,String> {
     //Change Ownership of cmd
     let checked_cmd: String = self.check_cmd(cmd);
     //cmd = PING Then user check if the server is responding correctly
@@ -31,17 +29,11 @@ impl EntryTrait for Entry {
       each number has a corresponding meaning
       see reponse/reponsecodes.rs
       */
-      return Ok(Responses::Process(ProcessResponses::ConnectivitySuccess))
-    }
-    else if checked_cmd == "eip1"{
-      return Err(Responses::Process(ProcessResponses::IpAddressUnallowedErr))
-    }
-    else if checked_cmd == "eip2"{
-      return Err(Responses::Process(ProcessResponses::IpAddressUnknownErr))
+      return create_response("200", "PONG", None, None);
     }
     else {
-      //use the Activator to activate certain commands
-      return Activate::new().activate(checked_cmd.clone());
+      //use the Squaredb-ql system to activate certain commands
+      return QL::init();
     }
   }
 
@@ -68,5 +60,4 @@ impl EntryTrait for Entry {
 
     String::from(result)
   }
-
 }

@@ -1,8 +1,6 @@
 use magic_crypt::MagicCryptTrait;
 use magic_crypt::new_magic_crypt;
 use magic_crypt::MagicCrypt256;
-use crate::response::responses::{Responses};
-use crate::response::process_responses::ProcessResponses;
 
 #[derive(Clone)]
 pub struct Encryptor {
