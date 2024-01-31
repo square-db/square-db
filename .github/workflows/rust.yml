@@ -17,4 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
+      run: git clone https://github.com/square-db/squaredb-fm
+      run: git clone https://github.com/square-db/squaredb-ql
       run: cargo build --verbose
