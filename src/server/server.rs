@@ -1,104 +1,137 @@
-use crate:: {
-  log::log::*,
-  response::create_response::create_response,
-  env::env:: {
-    Env,
-    EnvT
-  },
-  response::response:: {
-    Response,
-    ResponseTrait
-  },
-  entry::entry:: {
-    Entry,
-    EntryTrait
-  },
+use actix_web:: {
+  web,
+  Responder,
+  HttpRequest,
+  HttpServer,
+  App
 };
-use std:: {
+
+use std::
+{
   collections::HashMap,
   net::SocketAddr,
   process
 };
-use warp::Filter;
+use crate:: {
+  env::env:: {
+    Env,
+    EnvT
+  },
+  log::log:: {
+    Log,
+    LogTrait
+  },
+  response::response:: {
+    ResponseTrait,
+    Response
+  },
+  entry::entry:: {
+    EntryTrait,
+    Entry
+  }
+};
+use crate::response::create_response::create_response;
+use actix_governor:: {
+  Governor,
+  GovernorConfigBuilder
+};
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-struct RequestParams {
+pub struct RequestParams {
   query: String,
+}
+
+async fn endpoint(req: HttpRequest, query_params: web::Json<RequestParams>) -> impl Responder {
+  // Access the headers from the request
+  let headers = req.headers();
+  if let Some(val) = req.peer_addr() {
+    println!("{:?}", val.ip());
+    // Retrieve the Authorization header
+    match headers.get("Authorization") {
+      Some(auth_header) => {
+        // Convert the header value to a string slice
+        let auth_str = auth_header.to_str().unwrap_or("Invalid header");
+        //Auth
+        //future implmentation
+        println!("-------------------------");
+        Response::respond(Entry::new().handle_cmd(query_params.query.as_str()))
+      },
+      None => Response::respond(create_response("403", "No Authorization header found.", None, None))
+    }
+  } else {
+    Response::respond(create_response("403", "No Ip Adress found.", None, None))
+  }
 }
 
 pub struct Server;
 
 pub trait ServerT {
   fn check_variables(env_vars: &HashMap<String, String>);
-  fn run();
+  fn run() -> std::io::Result<()>;
 }
 
 impl ServerT for Server {
   fn check_variables(env_vars: &HashMap<String, String>) {
-    if env_vars["ENDPOINT"].is_empty() {
-      println!("[{}] Endpoint cannot be empty!", Log::error("ERR"));
+    if env_vars["BIND"].is_empty() {
+      println!("[{}] BIND cannot be empty! Specify it using --bind <bind> or set SQUARE_BIND in the enviroment", Log::error("ERR"));
       process::exit(1);
     }
 
-    if env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() || !env_vars["WEB_CRT"].is_empty() && env_vars["WEB_KEY"].is_empty() {
+    if env_vars["DATA_FOLDER"].is_empty() {
+      println!("[{}] DATA_FOLDER cannot be empty! Specify it using --file <data folder> or set SQUARE_DATA_FOLDER in the enviroment", Log::error("ERR"));
+      process::exit(1);
+    }
+
+    if !env_vars["WEB_KEY"].is_empty() {
       println!(
-        "[{}] {} is empty, but {} is not.",
+        "[{}] {} is empty",
         Log::info("INFO"),
-        Log::info("WEB_CRT"),
         Log::info("WEB_KEY")
       );
     }
+    
+    if !env_vars["WEB_CERT"].is_empty() {
+      println!(
+        "[{}] {} is empty",
+        Log::info("INFO"),
+        Log::info("WEB_CERT")
+      );
+    }
+    
   }
 
-  #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
-  async fn run() {
+  #[actix_web::main]
+  async fn run() -> std::io::Result<()> {
     let env_vars: HashMap<String,
     String> = Env.get_env_vars_from_session();
+    let max_connections: usize = env_vars["MAX_CONNECTIONS"].parse().unwrap_or_else(|_| {
+      println!("[{}]: MAX_CONNECTIONS must be a valid positive integer.", Log::error("ERR"));
+      process::exit(1);
+    });
     Self::check_variables(&env_vars);
-
-    let endpoint = &env_vars["ENDPOINT"];
-    let api = warp::post()
-    .and(warp::path(endpoint.clone()))
-    .and(warp::body::json())
-    .and(warp::header::optional("Authorization"))
-    .and(warp::addr::remote())
-    .map(
-      move |params: RequestParams, auth_header: Option<String>, addr: Option<SocketAddr>| {
-        println!("-------------------------");
-        if let Some(auth_header) = auth_header {
-          println!("[{}] {}", Log::info(addr.unwrap()), Log::info(&params.query));
-          return Response::respond(Entry::new().handle_cmd(&params.query));
-        } else {
-          println!("[{}] No Authorization header found", Log::info(addr.unwrap()));
-          return Response::respond(create_response(
-            "403",
-            "Authentication Required",
-            None,
-            Some("No data was found in the Authorization header!"),
-          ));
-        }
-      },
-    );
-
+    
     let socket_addr: SocketAddr = env_vars["BIND"].parse().expect("Failed to parse Socket Address");
 
     println!(
-      "[{}] Server runned on on {}/{}",
-      Log::success("SUCCESS"),
-      Log::success(socket_addr),
-      Log::success(&env_vars["ENDPOINT"])
+      "[{}] Server running on {}.\n",
+      Log::success("SUCESS"),
+      Log::success(socket_addr)
     );
 
-    if !env_vars["WEB_CRT"].is_empty() && !env_vars["WEB_KEY"].is_empty() {
-      println!("[{}] TLS used...", Log::info("INFO"));
-      warp::serve(api)
-      .tls()
-      .cert_path(&env_vars["WEB_CRT"])
-      .key_path(&env_vars["WEB_KEY"])
-      .run(socket_addr)
-      .await;
-    } else {
-      warp::serve(api).run(socket_addr).await;
-    }
+    let governor_conf = GovernorConfigBuilder::default()
+    .per_second(3)
+    .burst_size(20)
+    .finish()
+    .unwrap();
+
+    HttpServer::new(move || {
+      App::new()
+      .wrap(Governor::new(&governor_conf))
+      .route("/", web::post().to(endpoint))
+    })
+    .max_connections(max_connections)
+    .bind(socket_addr).expect("Failed to bind adress!")
+    .run()
+    .await
   }
 }

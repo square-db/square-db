@@ -1,5 +1,4 @@
 //This script is reponsible for running the cmd
-use squaredb_ql::QL;
 use std::collections::HashMap;
 use crate::response::create_response::create_response;
 
@@ -33,7 +32,7 @@ impl EntryTrait for Entry {
     }
     else {
       //use the Squaredb-ql system to activate certain commands
-      return QL::init();
+      return create_response("200", "QL Not supported not yet!", None, None);
     }
   }
 

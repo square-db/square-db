@@ -49,13 +49,12 @@ impl EnvT for Env {
     let default_env_vars = insert!(
       default_env_vars,
       "BIND" => "127.0.0.1:8000",
-      "ENDPOINT" => "db",
       "USER" => "root",
       "PASSW" => "root",
       "MAX_CONNECTIONS" => "0",
-      "TIMEOUT" => "0",
-      "WEB_CRT" => "",
-      "WEB_KEY" => ""
+      "WEB_KEY" => "",
+      "WEB_CERT" => "",
+      "DATA_FOLDER" => "data"
     );
 
     default_env_vars
@@ -88,13 +87,12 @@ impl EnvT for Env {
     }
 
     insert!(global_vars, "BIND", passed_args.bind, "SQUARE_BIND", default_env_vars["BIND"]);
-    insert!(global_vars, "ENDPOINT", passed_args.endpoint, "SQUARE_ENDPOINT", default_env_vars["ENDPOINT"]);
     insert!(global_vars, "USER", passed_args.user, "SQUARE_USER", "root");
     insert!(global_vars, "PASSW", passed_args.password, "SQUARE_PASSW", "root");
     insert!(global_vars, "MAX_CONNECTIONS", passed_args.max_connections, "SQUARE_MAX_CONNECTIONS", "0");
-    insert!(global_vars, "TIMEOUT", passed_args.timeout, "SQUARE_TIMEOUT", "0");
-    insert!(global_vars, "WEB_CRT", passed_args.web_crt, "SQUARE_WEB_CRT", "");
     insert!(global_vars, "WEB_KEY", passed_args.web_key, "SQUARE_WEB_KEY", "");
+    insert!(global_vars, "WEB_CERT", passed_args.web_cert, "SQUARE_WEB_CERT", "");
+    insert!(global_vars, "DATA_FOLDER", passed_args.data_folder, "SQUARE_DATA_FOLDER", "data");
 
     SessionManager::set(String::from("env"), global_vars);
   }

@@ -21,7 +21,7 @@ use std::collections::HashMap;
     if let Some(desc) = description {
       response_map.insert("description".to_string(), desc.to_string());
     } else {
-      response_map.insert("description".to_string(), "No description for that Error".to_string());
+      response_map.insert("description".to_string(), "No description".to_string());
     }
 
     response_map

@@ -1,26 +1,20 @@
 [package]
 name = "squaredb"
-version = "1.0.0-beta21"
+version = "1.0.0-beta22"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# Squaredb Dependencies
-squaredb_ql = { path = "../squaredb-ql"}
-squaredb_fm = { path = "../squaredb-fm"}
-#####
-warp = {version="*", features = ["tls"]}
 futures = "*"
-parking_lot = "0.11.0"
-chrono = "0.4"
-base64 = "0.12"
-hex = "0.4"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
-tokio = { version = "1.34.0", features = ["full" , "rt-multi-thread"] }
 lazy_static = "1.4.0"
-rand = "0.8.5"
 structopt = { version = "0.3", default-features = true }
 dotenv = "0.15.0"
-
+squaredb_fm = "1.0.0-beta"
+actix-web = { version = "4.5.1", features=["actix-tls"] }
+parking_lot = "0.12.1"
+actix-governor = "0.5.0"
+rustls = "0.22.2"
+rustls-pemfile = "1"
