@@ -1,6 +1,9 @@
 #![deny(clippy::mem_forget)]
 #![forbid(unsafe_code)]
-
+/*
+extern crate rcgen;
+use rcgen::generate_simple_self_signed;
+*/
 mod log;
 mod entry;
 mod env;
@@ -25,6 +28,15 @@ ____) | (_| | |_| | (_| | | |  __/ |__| | |_) |
            | |
            |_|
 "#);
+/*
+// Generate a certificate that's valid for "localhost" and "hello.world.example"
+let subject_alt_names = vec!["hello.world.example".to_string(),
+	"localhost".to_string()];
+
+let cert = generate_simple_self_signed(subject_alt_names).unwrap();
+println!("{}", cert.serialize_pem().unwrap());
+println!("{}", cert.serialize_private_key_pem());
+*/
 //Init the cli
 Cli::init();
 }

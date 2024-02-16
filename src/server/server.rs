@@ -1,3 +1,18 @@
+use rustls_pemfile:: {
+  certs,
+  pkcs8_private_keys
+};
+use rustls::pki_types:: {
+  PrivateKeyDer,
+  PrivatePkcs8KeyDer,
+  CertificateDer
+};
+use rustls::ServerConfig;
+use crate::response::create_response::create_response;
+use actix_governor:: {
+  Governor,
+  GovernorConfigBuilder
+};
 use actix_web:: {
   web,
   Responder,
@@ -10,7 +25,9 @@ use std::
 {
   collections::HashMap,
   net::SocketAddr,
-  process
+  process,
+  fs::File,
+  io::BufReader
 };
 use crate:: {
   env::env:: {
@@ -29,11 +46,6 @@ use crate:: {
     EntryTrait,
     Entry
   }
-};
-use crate::response::create_response::create_response;
-use actix_governor:: {
-  Governor,
-  GovernorConfigBuilder
 };
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -82,41 +94,41 @@ impl ServerT for Server {
       process::exit(1);
     }
 
-    if !env_vars["WEB_KEY"].is_empty() {
+    if env_vars["WEB_KEY"].is_empty() {
       println!(
         "[{}] {} is empty",
         Log::info("INFO"),
         Log::info("WEB_KEY")
       );
     }
-    
-    if !env_vars["WEB_CERT"].is_empty() {
+
+    if env_vars["WEB_CERT"].is_empty() {
       println!(
         "[{}] {} is empty",
         Log::info("INFO"),
         Log::info("WEB_CERT")
       );
     }
-    
+
   }
 
   #[actix_web::main]
   async fn run() -> std::io::Result<()> {
     let env_vars: HashMap<String,
     String> = Env.get_env_vars_from_session();
-    let max_connections: usize = env_vars["MAX_CONNECTIONS"].parse().unwrap_or_else(|_| {
-      println!("[{}]: MAX_CONNECTIONS must be a valid positive integer.", Log::error("ERR"));
-      process::exit(1);
-    });
-    Self::check_variables(&env_vars);
-    
-    let socket_addr: SocketAddr = env_vars["BIND"].parse().expect("Failed to parse Socket Address");
 
-    println!(
-      "[{}] Server running on {}.\n",
-      Log::success("SUCESS"),
-      Log::success(socket_addr)
-    );
+    let max_connections: usize = match env_vars["MAX_CONNECTIONS"].parse() {
+      Ok(val) => val,
+      Err(_) => {
+        println!("[{}]: MAX_CONNECTIONS must be a valid positive integer.", Log::error("ERR"));
+        process::exit(1);
+      }
+    };
+
+    Self::check_variables(&env_vars);
+
+    let socket_addr: SocketAddr = env_vars["BIND"].parse().expect("Failed to parse Socket Address");
+    println!("[{}] Server running on {}.", Log::success("SUCCESS"), Log::success(socket_addr));
 
     let governor_conf = GovernorConfigBuilder::default()
     .per_second(3)
@@ -124,14 +136,57 @@ impl ServerT for Server {
     .finish()
     .unwrap();
 
-    HttpServer::new(move || {
-      App::new()
-      .wrap(Governor::new(&governor_conf))
-      .route("/", web::post().to(endpoint))
+    let mut builder = HttpServer::new(move || {
+      App::new().wrap(Governor::new(&governor_conf)).route("/", web::post().to(endpoint))
     })
-    .max_connections(max_connections)
-    .bind(socket_addr).expect("Failed to bind adress!")
-    .run()
-    .await
+    .max_connections(max_connections);
+
+    if !env_vars["WEB_KEY"].is_empty() && !env_vars["WEB_CERT"].is_empty() {
+      if let (Ok(key_file), Ok(cert_file)) = (File::open(&env_vars["WEB_KEY"]), File::open(&env_vars["WEB_CERT"])) {
+        let key_reader = &mut BufReader::new(key_file);
+        let key = pkcs8_private_keys(key_reader).unwrap_or_else(|err| {
+          println!("[{}] Failed to read key file: {}",Log::error("ERR"),err);
+          process::exit(1);
+        })[0].clone();
+        let pkcs8_key = PrivatePkcs8KeyDer::from(key);
+        let private_key_der = PrivateKeyDer::from(pkcs8_key);
+
+        let cert_reader = &mut BufReader::new(cert_file);
+        let cert = certs(cert_reader).unwrap_or_else(|err| {
+          println!("[{}] Failed to read cert file: {}",Log::error("ERR"), err);
+          process::exit(1);
+        });
+        let mut cert_der = Vec::new();
+        for c in cert {
+          let c_vec = c.to_owned();
+          let c_der = CertificateDer::from(c_vec);
+          cert_der.push(c_der);
+        }
+
+        let tls_config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(cert_der, private_key_der)
+        .unwrap_or_else(|err| {
+          println!("[{}] Failed to build server config: {}",Log::error("ERR"), err);
+          process::exit(1);
+        });
+
+        println!("[{}] TLS is used!\n", Log::info("INFO"));
+        builder = builder.bind_rustls_0_22(socket_addr, tls_config).unwrap_or_else(|err| {
+          println!("[{}] Failed to bind address with rustls: {}",Log::error("ERR"),err);
+          process::exit(1);
+        });
+      } else {
+        println!("[{}] Failed to open key or cert file",Log::error("ERR"));
+        process::exit(1);
+      }
+    } else {
+      builder = builder.bind(socket_addr).unwrap_or_else(|err| {
+        println!("[{}] Failed to bind address: {}", Log::error("ERR"), err);
+        process::exit(1);
+      });
+    }
+
+    builder.run().await
   }
 }
