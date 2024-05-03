@@ -3,7 +3,7 @@
 
 > The Software is still under development from our squares programmers!
 > You can join us to be a Square too!
-> The DEVELOPMENT PROCESS OS STOPPED UNTIL 13.MAI
+> The DEVELOPMENT PROCESS IS STOPPED UNTIL 13.MAI
 > 
 
 <p align="center">
