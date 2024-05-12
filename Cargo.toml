@@ -12,7 +12,6 @@ serde_json = "1.0.108"
 lazy_static = "1.4.0"
 structopt = { version = "0.3", default-features = true }
 dotenv = "0.15.0"
-squaredb_fm = "1.0.0-beta"
 actix-web = { version = "4.5.1", features=["actix-tls", "rustls-0_22"] }
 parking_lot = "0.12.1"
 actix-governor = "0.5.0"
