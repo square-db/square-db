@@ -1,26 +1,22 @@
 #![deny(clippy::mem_forget)]
 #![forbid(unsafe_code)]
-/*
-extern crate rcgen;
-use rcgen::generate_simple_self_signed;
-*/
-mod log;
+
 mod entry;
 mod env;
 mod cli;
-mod session;
 mod server;
 mod response;
+mod err;
+mod panic;
 ////////////
-use cli::cli:: {
-Cli,
-CliT
-};
+use cli::cli::Cli;
+use env_logger::Env;
+use panic::panic::set_panic;
 
 fn main(){
 println!(r#"
  _____                            _____  ____
-/ ____|                           |  __ \|  _ \
+/ ____|                          |  __ \|  _ \
 | (___   __ _ _   _  __ _ _ _____| |  | | |_) |
 \___ \ / _` | | | |/ _` | '__/ _ \ |  | |  _  <
 ____) | (_| | |_| | (_| | | |  __/ |__| | |_) |
@@ -28,6 +24,9 @@ ____) | (_| | |_| | (_| | | |  __/ |__| | |_) |
            | |
            |_|
 "#);
+set_panic();
+//Init the logger
+env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 //Init the cli
 Cli::init();
 }
