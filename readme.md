@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-    SquareDB, a robust database engine crafted in Rust, seamlessly delivers speed and scalability. Elevate its capabilities effortlessly by extending it with RUST!
+    A collaborative, security-focused, scalable, multi-data-type, <br /> and extensible key-value store designed for the future.
 </p>
 
 <h3 align="center">Develop easier. &nbsp; Build faster. &nbsp; Like Squares</h3>
